@@ -28,8 +28,10 @@ class _MakananPageState extends State<MakananPage> {
     super.initState();
     _searchQueryNotifier = ValueNotifier<String>('');
     _sortByNotifier = ValueNotifier<String>('nama');
-    _filteredMakananNotifier = ValueNotifier<List<Makanan>>(List.from(_allMakanan));
-    
+    _filteredMakananNotifier = ValueNotifier<List<Makanan>>(
+      List.from(_allMakanan),
+    );
+
     // Listen to changes and update filtered list
     _searchQueryNotifier.addListener(_filterAndSort);
     _sortByNotifier.addListener(_filterAndSort);
@@ -46,7 +48,9 @@ class _MakananPageState extends State<MakananPage> {
   void _filterAndSort() {
     // Filter berdasarkan search query
     List<Makanan> filtered = _allMakanan.where((makanan) {
-      return makanan.nama.toLowerCase().contains(_searchQueryNotifier.value.toLowerCase());
+      return makanan.nama.toLowerCase().contains(
+        _searchQueryNotifier.value.toLowerCase(),
+      );
     }).toList();
 
     // Sort berdasarkan pilihan
@@ -57,13 +61,15 @@ class _MakananPageState extends State<MakananPage> {
     } else if (_sortByNotifier.value == 'harga_desc') {
       filtered.sort((a, b) => b.harga.compareTo(a.harga));
     }
-    
+
     _filteredMakananNotifier.value = filtered;
   }
 
   IconData getMakananIcon(String nama) {
     final lower = nama.toLowerCase();
-    if (lower.contains('soto') || lower.contains('mie') || lower.contains('bakso')) {
+    if (lower.contains('soto') ||
+        lower.contains('mie') ||
+        lower.contains('bakso')) {
       return Icons.ramen_dining;
     } else if (lower.contains('nasi')) {
       return Icons.rice_bowl;
@@ -122,7 +128,10 @@ class _MakananPageState extends State<MakananPage> {
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
               children: [
-                const Text('Urutkan: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Urutkan: ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 ValueListenableBuilder<String>(
                   valueListenable: _sortByNotifier,
                   builder: (context, sortBy, child) {
@@ -130,8 +139,14 @@ class _MakananPageState extends State<MakananPage> {
                       value: sortBy,
                       items: const [
                         DropdownMenuItem(value: 'nama', child: Text('Nama')),
-                        DropdownMenuItem(value: 'harga_asc', child: Text('Harga (Murah ke Mahal)')),
-                        DropdownMenuItem(value: 'harga_desc', child: Text('Harga (Mahal ke Murah)')),
+                        DropdownMenuItem(
+                          value: 'harga_asc',
+                          child: Text('Harga (Murah ke Mahal)'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'harga_desc',
+                          child: Text('Harga (Mahal ke Murah)'),
+                        ),
                       ],
                       onChanged: (value) {
                         _sortByNotifier.value = value ?? 'nama';
@@ -149,82 +164,88 @@ class _MakananPageState extends State<MakananPage> {
               valueListenable: _filteredMakananNotifier,
               builder: (context, filteredMakanan, child) {
                 return ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 18,
+                  ),
                   children: [
                     ...filteredMakanan.map(
-            (makanan) => Card(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      getMakananIcon(makanan.nama),
-                      color: Color(0xFFb71c1c),
-                      size: 38,
-                    ),
-                    const SizedBox(width: 18),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            makanan.nama,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFb71c1c),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            makanan.getInfo(),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            formatRupiah(makanan.harga.toInt()),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Color(0xFFb71c1c),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFb71c1c),
-                        foregroundColor: Colors.white,
+                      (makanan) => Card(
+                        margin: const EdgeInsets.symmetric(vertical: 10),
+                        elevation: 4,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                        textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => MakananDetailScreen(makanan: makanan),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                getMakananIcon(makanan.nama),
+                                color: Color(0xFFb71c1c),
+                                size: 38,
+                              ),
+                              const SizedBox(width: 18),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      makanan.nama,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFb71c1c),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      makanan.getInfo(),
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      formatRupiah(makanan.harga.toInt()),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: Color(0xFFb71c1c),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFb71c1c),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  textStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          MakananDetailScreen(makanan: makanan),
+                                    ),
+                                  );
+                                },
+                                child: const Text('Pesan'),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                      child: const Text('Pesan'),
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-          ),
                   ],
                 );
               },

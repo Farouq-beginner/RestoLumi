@@ -53,16 +53,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             MaterialPageRoute(builder: (_) => HomeScreen(email: emailVal)),
                           );
                         } else if (state is LoginFailure) {
-                          final emailVal = email.trim();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => HomeScreen(email: emailVal)),
-                          );
-                        } /* else if (state is LoginFailure) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(state.message)),
                           );
-                        } */
+                        }
                       },
                       builder: (context, state) {
                         return Column(

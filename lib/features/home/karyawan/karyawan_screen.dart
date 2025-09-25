@@ -22,11 +22,11 @@ class KaryawanPage extends StatelessWidget {
           return Card(
             margin: EdgeInsets.all(8),
             child: ListTile(
-              leading: CircleAvatar(
-                child: Text(karyawan.nama[0]),
+              leading: CircleAvatar(child: Text(karyawan.nama[0])),
+              title: Text(
+                karyawan.nama,
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              title: Text(karyawan.nama,
-                  style: TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text(karyawan.getInfo()),
               onTap: () {
                 Navigator.of(context).push(
