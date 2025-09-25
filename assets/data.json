@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Nasi Goreng Spesial",
+    "desc": "Nasi goreng dengan topping ayam, telur, dan kerupuk.",
+    "price": 25000,
+    "icon": "rice_bowl"
+  },
+  {
+    "name": "Steak Daging Premium",
+    "desc": "Steak daging sapi impor, saus lada hitam.",
+    "price": 75000,
+    "icon": "set_meal"
+  },
+  {
+    "name": "Es Teh Manis Jumbo",
+    "desc": "Minuman segar ukuran besar.",
+    "price": 8000,
+    "icon": "emoji_food_beverage"
+  },
+  {
+    "name": "Paket Hemat Berdua",
+    "desc": "2 Nasi + 2 Ayam + 2 Minum, cocok untuk berdua.",
+    "price": 45000,
+    "icon": "fastfood"
+  }
+]
