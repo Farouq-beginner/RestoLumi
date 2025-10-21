@@ -1,36 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../home/screens/home_screen.dart'; // tambahkan import
-import '../../../material3_test_screen.dart';
-// register navigates via named route '/register'
-import '../bloc/login_cubit.dart';
+import '../bloc/register_cubit.dart';
 
-class LoginScreen extends StatefulWidget {
-  final String? prefillEmail;
-  const LoginScreen({super.key, this.prefillEmail});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  String get email => _emailController.text;
-  set email(String value) => _emailController.text = value;
-
-  String get password => _passwordController.text;
-  set password(String value) => _passwordController.text = value;
   bool _obscurePassword = true;
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.prefillEmail != null && widget.prefillEmail!.isNotEmpty) {
-      _emailController.text = widget.prefillEmail!;
-    }
-  }
+  String get email => _emailController.text;
+  String get password => _passwordController.text;
 
   @override
   Widget build(BuildContext context) {
@@ -55,15 +40,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     constraints: BoxConstraints(
                       maxWidth: constraints.maxWidth > 600 ? 400 : double.infinity,
                     ),
-                    child: BlocConsumer<LoginCubit, LoginState>(
+                    child: BlocConsumer<RegisterCubit, RegisterState>(
                       listener: (context, state) {
-                        if (state is LoginSuccess) {
+                        if (state is RegisterSuccess) {
                           final emailVal = email.trim();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => HomeScreen(email: emailVal)),
+                          // Setelah daftar, kembali ke Login dan prefilling email melalui named route args
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            '/login',
+                            (route) => false,
+                            arguments: {'email': emailVal},
                           );
-                        } else if (state is LoginFailure) {
+                        } else if (state is RegisterFailure) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text(state.message)),
                           );
@@ -119,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Text(
-                                'Login untuk pengalaman kuliner terbaik!',
+                                'Buat akun untuk mulai memesan!',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.black87,
@@ -129,8 +116,79 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 32),
-                            Container
-                              (
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 8,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                              child: Column(
+                                children: [
+                                  TextField(
+                                    controller: _emailController,
+                                    decoration: InputDecoration(
+                                      labelText: 'Email',
+                                      prefixIcon: const Icon(Icons.email, color: Color(0xFFb71c1c)),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextField(
+                                    controller: _passwordController,
+                                    obscureText: _obscurePassword,
+                                    decoration: InputDecoration(
+                                      labelText: 'Password',
+                                      prefixIcon: const Icon(Icons.lock, color: Color(0xFFb71c1c)),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                          color: const Color(0xFFb71c1c),
+                                        ),
+                                        onPressed: () {
+                                          setState(() => _obscurePassword = !_obscurePassword);
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                  state is RegisterLoading
+                                      ? const CircularProgressIndicator(color: Color(0xFFb71c1c))
+                                      : SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFFb71c1c),
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(vertical: 16),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                                              elevation: 4,
+                                            ),
+                                            onPressed: () {
+                                              context.read<RegisterCubit>().register(email, password);
+                                            },
+                                            child: const Text('Daftar'),
+                                          ),
+                                        ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Container(
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(12),
@@ -148,118 +206,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   foregroundColor: const Color(0xFFb71c1c),
                                   textStyle: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                onPressed: () {
-                                  Navigator.of(context).pushNamed('/register');
-                                },
-                                child: const Text('Belum punya akun? Daftar'),
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('Sudah punya akun? Login'),
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.3), // lebih transparan
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 8,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                              child: Column(
-                                children: [
-                                  TextField(
-                                    controller: _emailController,
-                                    decoration: InputDecoration(
-                                      labelText: "Email",
-                                      prefixIcon: Icon(Icons.email, color: Color(0xFFb71c1c)),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextField(
-                                    controller: _passwordController,
-                                    obscureText: _obscurePassword,
-                                    decoration: InputDecoration(
-                                      labelText: "Password",
-                                      prefixIcon: Icon(Icons.lock, color: Color(0xFFb71c1c)),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                          color: Color(0xFFb71c1c),
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _obscurePassword = !_obscurePassword;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 24),
-                                  state is LoginLoading
-                                      ? const CircularProgressIndicator(color: Color(0xFFb71c1c))
-                                      : SizedBox(
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFFb71c1c),
-                                              foregroundColor: Colors.white,
-                                              padding: const EdgeInsets.symmetric(vertical: 16),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(12),
-                                              ),
-                                              textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                                              elevation: 4,
-                                            ),
-                                            onPressed: () {
-                                              context.read<LoginCubit>().login(email, password);
-                                            },
-                                            child: const Text("Login"),
-                                          ),
-                                        ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            // MD3 Test Button
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.7),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: TextButton.icon(
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  foregroundColor: const Color(0xFF1b5e20),
-                                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const Material3TestScreen(),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.palette_outlined),
-                                label: const Text('MD3'),
-                              ),
-                            ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 16),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(

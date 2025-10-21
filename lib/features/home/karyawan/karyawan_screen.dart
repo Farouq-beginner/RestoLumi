@@ -11,6 +11,8 @@ class KaryawanPage extends StatelessWidget {
     KaryawanKontrak(4, "Dewi", 2800000, 6),
   ];
 
+  KaryawanPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

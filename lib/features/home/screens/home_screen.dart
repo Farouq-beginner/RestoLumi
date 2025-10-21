@@ -3,8 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'home_top_screen.dart';
 import 'home_footer_screen.dart';
 import 'center_screen.dart';
-import 'package:my_project/features/profile/dashboard.dart';
+import 'package:my_project/features/profile/admin_dashboard.dart';
+import 'package:my_project/features/profile/user_dashboard.dart';
 import 'package:equatable/equatable.dart';
+import '../../../data/services/auth_service.dart';
+import 'package:my_project/data/repositories/auth_repository.dart';
+import '../widgets/search_sort.dart';
+import '../data/menu_repository.dart';
+import '../widgets/menu_item_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String? email;
@@ -26,6 +32,186 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   final ScrollController _scrollController = ScrollController();
+
+  Future<void> _openSearchModal() async {
+    final controller = SearchSortController();
+  final scopeNotifier = ValueNotifier<String>('semua');
+  final resultsNotifier = ValueNotifier<List<_SearchItem>>([]);
+    final repo = MenuRepository();
+  final all = await repo.getAll();
+  final spesial = await repo.getSpecials();
+    final makanan = all.where((e) => e.type == 'makanan').toList();
+    final minuman = all.where((e) => e.type == 'minuman').toList();
+
+  List<_SearchItem> mapItems(List<MenuItem> list) => list
+    .map((e) => _SearchItem(type: e.type, name: e.name, price: e.price, item: e))
+        .toList();
+
+    void compute() {
+      final scope = scopeNotifier.value;
+      if (scope == 'spesial') {
+        final filtered = filterAndSort<MenuItem>(
+          all: spesial,
+          query: controller.searchQuery.value,
+          sortBy: controller.sortBy.value,
+          nameOf: (e) => e.name,
+          priceOf: (e) => e.price,
+        );
+        resultsNotifier.value = mapItems(filtered);
+      } else if (scope == 'makanan') {
+        final filtered = filterAndSort<MenuItem>(
+          all: makanan,
+          query: controller.searchQuery.value,
+          sortBy: controller.sortBy.value,
+          nameOf: (e) => e.name,
+          priceOf: (e) => e.price,
+        );
+        resultsNotifier.value = mapItems(filtered);
+      } else if (scope == 'minuman') {
+        final filtered = filterAndSort<MenuItem>(
+          all: minuman,
+          query: controller.searchQuery.value,
+          sortBy: controller.sortBy.value,
+          nameOf: (e) => e.name,
+          priceOf: (e) => e.price,
+        );
+        resultsNotifier.value = mapItems(filtered);
+      } else {
+        final allItems = [...makanan, ...minuman];
+        final filtered = filterAndSort<MenuItem>(
+          all: allItems,
+          query: controller.searchQuery.value,
+          sortBy: controller.sortBy.value,
+          nameOf: (e) => e.name,
+          priceOf: (e) => e.price,
+        );
+        resultsNotifier.value = mapItems(filtered);
+      }
+    }
+
+    controller.searchQuery.addListener(compute);
+    controller.sortBy.addListener(compute);
+    scopeNotifier.addListener(compute);
+    // initial compute
+    compute();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: SizedBox(
+              height: MediaQuery.of(ctx).size.height * 0.85,
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Cari Menu', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  // Search + Sort controls
+                  SearchSortBar(controller: controller, hintText: 'Cari di semua menu...'),
+                  // Scope chips
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: ValueListenableBuilder<String>(
+                      valueListenable: scopeNotifier,
+                      builder: (context, scope, _) {
+                        return Wrap(
+                          spacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: const Text('Semua'),
+                              selected: scope == 'semua',
+                              onSelected: (_) => scopeNotifier.value = 'semua',
+                            ),
+                            ChoiceChip(
+                              label: const Text('Spesial'),
+                              selected: scope == 'spesial',
+                              onSelected: (_) => scopeNotifier.value = 'spesial',
+                            ),
+                            ChoiceChip(
+                              label: const Text('Makanan'),
+                              selected: scope == 'makanan',
+                              onSelected: (_) => scopeNotifier.value = 'makanan',
+                            ),
+                            ChoiceChip(
+                              label: const Text('Minuman'),
+                              selected: scope == 'minuman',
+                              onSelected: (_) => scopeNotifier.value = 'minuman',
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Results
+                  Expanded(
+                    child: ValueListenableBuilder<List<_SearchItem>>(
+                      valueListenable: resultsNotifier,
+                      builder: (context, items, _) {
+                        if (items.isEmpty) {
+                          return const Center(child: Text('Tidak ada hasil.'));
+                        }
+                        return ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          itemBuilder: (context, i) {
+                            final it = items[i];
+                            return ListTile(
+                              leading: Icon(
+                                it.type == 'makanan' ? Icons.restaurant_menu : Icons.local_drink,
+                                color: const Color(0xFFb71c1c),
+                              ),
+                              title: Text(it.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text(formatRupiah(it.price.toInt())),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                if (it.item != null) {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => MenuItemDetailScreen(item: it.item!),
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                          separatorBuilder: (_, __) => const Divider(height: 1),
+                          itemCount: items.length,
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ).whenComplete(() {
+      controller.dispose();
+      scopeNotifier.dispose();
+      resultsNotifier.dispose();
+    });
+  }
+
+  // Unified search item holder
+  // ignore: unused_element
+  void _debugNoop() {}
 
   String? get username {
     final email = widget.email;
@@ -164,18 +350,47 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             actions: [
+                IconButton(
+                  icon: const Icon(Icons.search, color: Color(0xFFb71c1c)),
+                  tooltip: 'Cari Menu',
+                  onPressed: _openSearchModal,
+                ),
               IconButton(
                 icon: const Icon(
                   Icons.account_circle,
                   color: Color(0xFFb71c1c),
                 ),
                 tooltip: 'Profile',
-                onPressed: () {
+                onPressed: () async {
+                  final isAdmin = (widget.email != null &&
+                      widget.email!.toLowerCase().trim() == 'farouq@gmail.com');
+                  if (isAdmin) {
+                    // Admin goes to AdminDashboard
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AdminDashboard(
+                          repository: AuthRepository(AuthService()),
+                          adminEmail: widget.email ?? '-',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Regular user goes to UserDashboard, show verified badge if admin verified them
+                  bool isVerified = false;
+                  if (widget.email != null) {
+                    try {
+                      isVerified = await AuthService().isVerified(widget.email!);
+                    } catch (_) {}
+                  }
+                  if (!context.mounted) return;
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => ProfileDashboard(
+                      builder: (_) => UserDashboard(
                         name: username ?? 'Guest',
                         email: widget.email ?? '-',
+                        isVerified: isVerified,
                         saldo: 1573000000,
                         pendapatan: 6000000,
                         riwayatPesanan: [
@@ -198,8 +413,15 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 icon: const Icon(Icons.logout, color: Color(0xFFb71c1c)),
                 tooltip: 'Log Out',
-                onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/login');
+                onPressed: () async {
+                  // Clear token on logout
+                  try {
+                    final svc = AuthService();
+                    await svc.logout();
+                  } catch (_) {}
+                  if (context.mounted) {
+                    Navigator.pushReplacementNamed(context, '/login');
+                  }
                 },
               ),
             ],
@@ -323,8 +545,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         );
                       },
-                      child: const Icon(Icons.local_offer),
                       tooltip: 'Lihat Penawaran',
+                      child: const Icon(Icons.local_offer),
                     ),
                   ),
                 ],
@@ -335,6 +557,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+}
+
+class _SearchItem {
+  final String type; // 'makanan' | 'minuman'
+  final String name;
+  final num price;
+  final MenuItem? item;
+  _SearchItem({required this.type, required this.name, required this.price, this.item});
 }
 
 

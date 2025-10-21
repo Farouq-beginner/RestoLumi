@@ -1,85 +1,55 @@
 import 'package:flutter/material.dart';
-import 'model/makanan_model.dart';
-import 'makanan_detail_screen.dart';
+import '../widgets/search_sort.dart';
+import '../data/menu_repository.dart';
+import '../widgets/menu_item_detail_screen.dart';
 
 class MakananPage extends StatefulWidget {
-  MakananPage({Key? key}) : super(key: key);
+  const MakananPage({super.key});
 
   @override
   State<MakananPage> createState() => _MakananPageState();
 }
 
 class _MakananPageState extends State<MakananPage> {
-  final List<Makanan> _allMakanan = [
-    MakananBerkuah(1, 'Soto Ayam', 18000, adaKuah: true),
-    MakananBerkuah(2, 'Bakso', 20000, adaKuah: true),
-    MakananKering(3, 'Nasi Goreng', 17000, 'Kering'),
-    MakananKering(4, 'Ayam Goreng', 22000, 'Renyah'),
-    MakananBerkuah(5, 'Mie Kuah', 15000, adaKuah: true),
-    MakananKering(6, 'Tempe Goreng', 8000, 'Kering'),
-  ];
-
-  late ValueNotifier<List<Makanan>> _filteredMakananNotifier;
-  late ValueNotifier<String> _searchQueryNotifier;
-  late ValueNotifier<String> _sortByNotifier;
+  List<MenuItem> _allMakanan = const [];
+  late ValueNotifier<List<MenuItem>> _filteredMakananNotifier;
+  late SearchSortController _controller;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    _searchQueryNotifier = ValueNotifier<String>('');
-    _sortByNotifier = ValueNotifier<String>('nama');
-    _filteredMakananNotifier = ValueNotifier<List<Makanan>>(
-      List.from(_allMakanan),
-    );
-
-    // Listen to changes and update filtered list
-    _searchQueryNotifier.addListener(_filterAndSort);
-    _sortByNotifier.addListener(_filterAndSort);
+    _controller = SearchSortController();
+    _filteredMakananNotifier = ValueNotifier<List<MenuItem>>([]);
+    _controller.searchQuery.addListener(_filterAndSort);
+    _controller.sortBy.addListener(_filterAndSort);
+    _load();
   }
 
   @override
   void dispose() {
     _filteredMakananNotifier.dispose();
-    _searchQueryNotifier.dispose();
-    _sortByNotifier.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  void _filterAndSort() {
-    // Filter berdasarkan search query
-    List<Makanan> filtered = _allMakanan.where((makanan) {
-      return makanan.nama.toLowerCase().contains(
-        _searchQueryNotifier.value.toLowerCase(),
-      );
-    }).toList();
-
-    // Sort berdasarkan pilihan
-    if (_sortByNotifier.value == 'nama') {
-      filtered.sort((a, b) => a.nama.compareTo(b.nama));
-    } else if (_sortByNotifier.value == 'harga_asc') {
-      filtered.sort((a, b) => a.harga.compareTo(b.harga));
-    } else if (_sortByNotifier.value == 'harga_desc') {
-      filtered.sort((a, b) => b.harga.compareTo(a.harga));
-    }
-
-    _filteredMakananNotifier.value = filtered;
+  Future<void> _load() async {
+    final repo = MenuRepository();
+    final data = await repo.getByCategory('makanan');
+    _allMakanan = data;
+    _loading = false;
+    _filterAndSort();
+    if (mounted) setState(() {});
   }
 
-  IconData getMakananIcon(String nama) {
-    final lower = nama.toLowerCase();
-    if (lower.contains('soto') ||
-        lower.contains('mie') ||
-        lower.contains('bakso')) {
-      return Icons.ramen_dining;
-    } else if (lower.contains('nasi')) {
-      return Icons.rice_bowl;
-    } else if (lower.contains('ayam')) {
-      return Icons.set_meal;
-    } else if (lower.contains('tempe')) {
-      return Icons.fastfood;
-    } else {
-      return Icons.restaurant_menu;
-    }
+  void _filterAndSort() {
+    _filteredMakananNotifier.value = filterAndSort<MenuItem>(
+      all: _allMakanan,
+      query: _controller.searchQuery.value,
+      sortBy: _controller.sortBy.value,
+      nameOf: (m) => m.name,
+      priceOf: (m) => m.price,
+    );
   }
 
   String formatRupiah(int value) {
@@ -107,63 +77,16 @@ class _MakananPageState extends State<MakananPage> {
       ),
       body: Column(
         children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Cari makanan...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onChanged: (value) {
-                _searchQueryNotifier.value = value;
-              },
-            ),
-          ),
-          // Sort Dropdown
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                const Text(
-                  'Urutkan: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                ValueListenableBuilder<String>(
-                  valueListenable: _sortByNotifier,
-                  builder: (context, sortBy, child) {
-                    return DropdownButton<String>(
-                      value: sortBy,
-                      items: const [
-                        DropdownMenuItem(value: 'nama', child: Text('Nama')),
-                        DropdownMenuItem(
-                          value: 'harga_asc',
-                          child: Text('Harga (Murah ke Mahal)'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'harga_desc',
-                          child: Text('Harga (Mahal ke Murah)'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        _sortByNotifier.value = value ?? 'nama';
-                      },
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+          // Search + Sort (reusable)
+          SearchSortBar(controller: _controller, hintText: 'Cari makanan...'),
           const SizedBox(height: 8),
-          // List Makanan
           Expanded(
-            child: ValueListenableBuilder<List<Makanan>>(
-              valueListenable: _filteredMakananNotifier,
-              builder: (context, filteredMakanan, child) {
-                return ListView(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : ValueListenableBuilder<List<MenuItem>>(
+                    valueListenable: _filteredMakananNotifier,
+                    builder: (context, filteredMakanan, child) {
+                      return ListView(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 18,
@@ -182,7 +105,7 @@ class _MakananPageState extends State<MakananPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Icon(
-                                getMakananIcon(makanan.nama),
+                                makanan.iconData,
                                 color: Color(0xFFb71c1c),
                                 size: 38,
                               ),
@@ -192,7 +115,7 @@ class _MakananPageState extends State<MakananPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      makanan.nama,
+                                      makanan.name,
                                       style: const TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -201,7 +124,7 @@ class _MakananPageState extends State<MakananPage> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      makanan.getInfo(),
+                                      makanan.desc.isNotEmpty ? makanan.desc : 'Lezat dan bergizi.',
                                       style: const TextStyle(
                                         fontSize: 15,
                                         color: Colors.black87,
@@ -209,7 +132,7 @@ class _MakananPageState extends State<MakananPage> {
                                     ),
                                     const SizedBox(height: 8),
                                     Text(
-                                      formatRupiah(makanan.harga.toInt()),
+                                      formatRupiah(makanan.price),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: Color(0xFFb71c1c),
@@ -234,8 +157,7 @@ class _MakananPageState extends State<MakananPage> {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          MakananDetailScreen(makanan: makanan),
+                                      builder: (_) => MenuItemDetailScreen(item: makanan),
                                     ),
                                   );
                                 },
@@ -248,8 +170,8 @@ class _MakananPageState extends State<MakananPage> {
                     ),
                   ],
                 );
-              },
-            ),
+                    },
+                  ),
           ),
         ],
       ),

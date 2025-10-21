@@ -3,7 +3,7 @@ import 'models/karyawan_model.dart';
 
 class KaryawanDetailScreen extends StatelessWidget {
   final Karyawan karyawan;
-  const KaryawanDetailScreen({Key? key, required this.karyawan}) : super(key: key);
+  const KaryawanDetailScreen({super.key, required this.karyawan});
 
   String formatRupiah(int value) {
     final s = value.toString();

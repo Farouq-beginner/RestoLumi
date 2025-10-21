@@ -3,24 +3,117 @@
     "name": "Nasi Goreng Spesial",
     "desc": "Nasi goreng dengan topping ayam, telur, dan kerupuk.",
     "price": 25000,
-    "icon": "rice_bowl"
+    "icon": "rice_bowl",
+    "image": "assets/images/home.png",
+  "category": "spesial",
+  "rating": 4.5
   },
   {
     "name": "Steak Daging Premium",
     "desc": "Steak daging sapi impor, saus lada hitam.",
     "price": 75000,
-    "icon": "set_meal"
+    "icon": "set_meal",
+    "image": "assets/images/home.png",
+  "category": "spesial",
+  "rating": 4.7
   },
   {
     "name": "Es Teh Manis Jumbo",
     "desc": "Minuman segar ukuran besar.",
     "price": 8000,
-    "icon": "emoji_food_beverage"
+    "icon": "emoji_food_beverage",
+    "image": "assets/images/home.png",
+  "category": "spesial",
+  "rating": 4.2
   },
   {
     "name": "Paket Hemat Berdua",
     "desc": "2 Nasi + 2 Ayam + 2 Minum, cocok untuk berdua.",
     "price": 45000,
-    "icon": "fastfood"
+    "icon": "fastfood",
+    "image": "assets/images/home.png",
+  "category": "spesial",
+  "rating": 4.6
+  },
+  { 
+    "name": "Soto Ayam",
+    "desc": "Soto ayam hangat dengan kuah gurih.",
+    "price": 18000,
+    "icon": "rice_bowl",
+    "image": "assets/images/home.png",
+  "category": "makanan",
+  "rating": 4.0
+  },
+  { 
+    "name": "Nasi Uduk",
+    "desc": "Nasi uduk gurih dengan lauk pelengkap.",
+    "price": 15000,
+    "icon": "rice_bowl",
+    "image": "assets/images/home.png",
+  "category": "makanan",
+  "rating": 3.9
+  },
+  { 
+    "name": "Ayam Goreng",
+    "desc": "Ayam goreng renyah bumbu khas.",
+    "price": 22000,
+    "icon": "set_meal",
+    "image": "assets/images/home.png",
+  "category": "makanan",
+  "rating": 4.1
+  },
+  { 
+    "name": "Tempe Goreng",
+    "desc": "Tempe goreng kering, gurih dan renyah.",
+    "price": 8000,
+    "icon": "fastfood",
+    "image": "assets/images/home.png",
+  "category": "makanan",
+  "rating": 3.8
+  },
+  { 
+    "name": "Mie Goreng",
+    "desc": "Mie goreng spesial dengan sayuran dan bakso.",
+    "price": 17000,
+    "icon": "fastfood",
+    "image": "assets/images/home.png",
+  "category": "makanan",
+  "rating": 4.0
+  },
+  { 
+    "name": "Es Jeruk",
+    "desc": "Jeruk segar diperas, disajikan dingin.",
+    "price": 7000,
+    "icon": "local_drink",
+    "image": "assets/images/home.png",
+  "category": "minuman",
+  "rating": 3.7
+  },
+  { 
+    "name": "Teh Panas",
+    "desc": "Teh hangat untuk menemani santai.",
+    "price": 6000,
+    "icon": "emoji_food_beverage",
+    "image": "assets/images/home.png",
+  "category": "minuman",
+  "rating": 3.8
+  },
+  { 
+    "name": "Kopi Hitam",
+    "desc": "Kopi hitam pekat tanpa gula.",
+    "price": 10000,
+    "icon": "emoji_food_beverage",
+    "image": "assets/images/home.png",
+  "category": "minuman",
+  "rating": 3.5
+  },
+  { 
+    "name": "Air Mineral",
+    "desc": "Air mineral dingin.",
+    "price": 5000,
+    "icon": "local_drink",
+    "image": "assets/images/home.png",
+  "category": "minuman",
+  "rating": 3.9
   }
 ]

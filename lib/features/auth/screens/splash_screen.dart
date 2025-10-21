@@ -96,7 +96,7 @@ class SplashCubit extends Cubit<SplashState> {
 
   Future<void> startSplash() async {
     emit(SplashAnimating());
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 3));
     emit(SplashFinished());
   }
 }
